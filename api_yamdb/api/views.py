@@ -3,11 +3,15 @@ from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 
-from .mixins import ModelMixinSet
-from .serializers import (CategorySerializer, GenreSerializer, TitleSerializer)
-from .permissions import IsAdminUserOrReadOnly
-from reviews.models import Category, Genre, Title
-from api.filters import TitleFilter
+from api.mixins import ModelMixinSet
+from api.serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    GenreTitleSerializer,
+)
+from api.permissions import IsAdminUserOrReadOnly
+from reviews.models import Category, Genre, GenreTitle
+from api.filters import GenreTitleFilter
 
 
 class CategoryViewSet(ModelMixinSet):
@@ -32,10 +36,10 @@ class GenreViewSet(ModelMixinSet):
     lookup_field = 'slug'
 
 
-class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+class GenreTitleViewSet(ModelViewSet):
+    queryset = GenreTitle.objects.all()
+    serializer_class = GenreTitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (DjangoFilterBackend)
-    filterset_class = TitleFilter
+    filterset_class = GenreTitleFilter
