@@ -1,7 +1,8 @@
 from django.contrib import admin
-from reviews.models import CustomUser
-# from reviews.models import (Category, Comment, Genre, GenreTitle,
-#                            Review, Title, CustomUser)
+
+from reviews.models import CustomUser, Category, Genre, Title
+# from reviews.models import (Category, Comment, Genre, Title,
+#                            Review, CustomUser)
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -10,10 +11,19 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username',)
 
 
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name", "slug")
+
+
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name", "slug")
+
+
+class GenreTitleAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name", "year", "description", "category")
+
+
 admin.site.register(CustomUser, UserAdmin)
-# admin.site.register(Category)
-# admin.site.register(Comment)
-# admin.site.register(Genre)
-# admin.site.register(GenreTitle)
-# admin.site.register(Review)
-# admin.site.register(Title)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Genre, GenreAdmin)
+admin.site.register(Title, GenreTitleAdmin)
