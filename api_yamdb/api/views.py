@@ -7,7 +7,6 @@ from .serializers import ReviewSerializer, CommentSerializer
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes = Миша
 
     def get_title_obj(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -22,7 +21,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    # permission_classes = Миша
 
     def get_review_obj(self):
         return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
