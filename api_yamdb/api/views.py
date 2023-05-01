@@ -7,7 +7,7 @@ from api.mixins import ModelMixinSet
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
-    GenreTitleSerializer,
+    TitleSerializer,
 )
 from api.permissions import IsAdminUserOrReadOnly
 from reviews.models import Category, Genre, GenreTitle
@@ -36,9 +36,9 @@ class GenreViewSet(ModelMixinSet):
     lookup_field = 'slug'
 
 
-class GenreTitleViewSet(ModelViewSet):
+class TitleViewSet(ModelViewSet):
     queryset = GenreTitle.objects.all()
-    serializer_class = GenreTitleSerializer
+    serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (DjangoFilterBackend)

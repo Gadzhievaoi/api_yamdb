@@ -21,7 +21,7 @@ class Category(models.Model):
         return self.slug
 
 
-class GenreTitle(models.Model):
+class Title(models.Model):
     """Модель Произведение."""
 
     name = models.TextField()

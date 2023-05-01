@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Genre, GenreTitle
+from .models import Category, Genre, Title
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -17,4 +17,4 @@ class GenreTitleAdmin(admin.ModelAdmin):
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Genre, GenreAdmin)
-admin.site.register(GenreTitle, GenreTitleAdmin)
+admin.site.register(Title, GenreTitleAdmin)
