@@ -86,14 +86,14 @@ class ConfirmationSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True,
                               default=serializers.CurrentUserDefault())
-    title = serializers.HiddenField(
-        default=Title.objects.get(
-            id=serializers.context['request'].query_params.get('title_id')))
+    # title = serializers.HiddenField(
+    #    default=Title.objects.get(
+    #        id=serializers.context['request'].query_params.get('title_id')))
 
     class Meta:
         model = Review
         fields = '__all__'
-        read_only_fields = ('pub_date',)
+        read_only_fields = ('pub_date', 'title')
         validators = [
             UniqueTogetherValidator(
                 queryset=Review.objects.all(),
@@ -104,14 +104,14 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    review = serializers.HiddenField(
-        default=Review.objects.get(
-            id=serializers.context['request'].query_params.get('review_id')))
+    # review = serializers.HiddenField(
+    #    default=Review.objects.get(
+    #        id=serializers.context['request'].query_params.get('review_id')))
 
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('pub_date',)
+        read_only_fields = ('pub_date', 'review')
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -139,7 +139,7 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all()
     )
     rating = serializers.IntegerField(read_only=True)
-    
+
     def get_rating(self, obj):
         return round(obj.reviews.aggregate(Avg("score")))
 

@@ -4,13 +4,16 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    PageNumberPagination,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ModelViewSet
 
-from reviews.models import CustomUser, Category, Genre, GenreTitle, Review, Title
+from reviews.models import CustomUser, Category, Genre, Title, Review, Title
 from api.permissions import IsAdmin, IsAdminUserOrReadOnly
 from api.mixins import ModelMixinSet
 from api.serializers import (
@@ -114,7 +117,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return title.reviews
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user, title=self.get_title_obj())
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -128,7 +131,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review.comments
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user, review=self.get_review_obj())
 
 
 class CategoryViewSet(ModelMixinSet):
@@ -154,7 +157,7 @@ class GenreViewSet(ModelMixinSet):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = GenreTitle.objects.all()
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)

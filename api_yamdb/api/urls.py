@@ -10,7 +10,7 @@ from api.views import (
     TitleViewSet,
     ReviewViewSet,
     CommentViewSet,
-)    
+)
 
 app_name = 'api'
 
