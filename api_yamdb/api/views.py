@@ -161,5 +161,5 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (DjangoFilterBackend)
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = GenreTitleFilter
