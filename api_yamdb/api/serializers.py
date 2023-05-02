@@ -4,9 +4,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 
-from reviews.models import CustomUser
-from reviews.models import Review, Comment
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Comment, CustomUser, Genre, Review, Title
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
