@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
+from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import (
@@ -61,7 +62,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserCreateViewSet(viewsets.ModelViewSet):
+class UserCreateAPIView(APIView):
 
     def create(self, request):
         serializer = UserCreateSerializer(data=request.data)
@@ -89,7 +90,7 @@ class UserCreateViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ConfirmationViewSet(viewsets.ModelViewSet):
+class ConfirmationAPIView(APIView):
 
     def create(self, request):
         serializer = ConfirmationSerializer(data=request.data)
@@ -141,7 +142,7 @@ class CategoryViewSet(ModelMixinSet):
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (SearchFilter, )
-    search_fields = ('name', )
+    search_fields = ('name',)
     lookup_field = 'slug'
 
 
@@ -152,7 +153,7 @@ class GenreViewSet(ModelMixinSet):
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (SearchFilter,)
-    search_fields = ('name', )
+    search_fields = ('name',)
     lookup_field = 'slug'
 
 
