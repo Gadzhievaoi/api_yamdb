@@ -101,7 +101,11 @@ class Category(models.Model):
 class Title(models.Model):
     """Модель Произведение."""
 
-    name = models.TextField()
+    name = models.CharField(
+        'название',
+        max_length=256,
+        db_index=True
+    )
     year = models.IntegerField(
         'Год релиза',
         validators=[validate_year],

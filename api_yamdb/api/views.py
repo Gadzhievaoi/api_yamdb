@@ -20,11 +20,12 @@ from api.mixins import ModelMixinSet
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer,
     ReviewSerializer,
     CommentSerializer,
     ConfirmationSerializer,
     UserCreateSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer
 )
 from api.filters import GenreTitleFilter
 
@@ -159,8 +160,13 @@ class GenreViewSet(ModelMixinSet):
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    # serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminUserOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = GenreTitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
