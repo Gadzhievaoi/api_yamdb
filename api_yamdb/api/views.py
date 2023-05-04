@@ -45,7 +45,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        if request.method.lower() == "GET":
+        if request.method == "GET":
             serializer = UserCreateSerializer(request.user)
             return Response(serializer.data, status.HTTP_200_OK)
 
@@ -65,7 +65,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class UserCreateAPIView(APIView):
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
             if not CustomUser.objects.filter(
@@ -93,7 +93,7 @@ class UserCreateAPIView(APIView):
 
 class ConfirmationAPIView(APIView):
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = ConfirmationSerializer(data=request.data)
         if serializer.is_valid():
             user = CustomUser.objects.get(

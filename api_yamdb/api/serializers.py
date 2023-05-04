@@ -35,13 +35,12 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
 
-    def validate(self, attrs):
-        if attrs['username'].lower() == 'me':
+    def validate(self, value):
+        if 'me' == value:
             raise serializers.ValidationError(
                 'Использовать имя "me" в качестве username запрещено.'
             )
-        self.validate_unique_user(attrs['username'], attrs['email'])
-        return attrs
+        return value
 
     def validate_unique_user(self, username, email):
         if CustomUser.objects.filter(username=username, email=email).exists():
@@ -76,7 +75,7 @@ class ConfirmationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user = get_object_or_404(CustomUser, username=attrs['username'])
-        if not user.confirmation_code == attrs['confirmation_code']:
+        if user.confirmation_code != attrs['confirmation_code']:
             raise serializers.ValidationError('Неверный код подтверждения.')
         return attrs
 
