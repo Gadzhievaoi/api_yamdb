@@ -1,6 +1,6 @@
 from rest_framework import serializers, validators
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
+# from rest_framework.validators import UniqueTogetherValidator
 from django.shortcuts import get_object_or_404
 # from django.db.models import Avg
 
@@ -89,14 +89,14 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = '__all__'
-        read_only_fields = ('pub_date', 'title')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title')
-            )
-        ]
+        fields = ('id', 'text', 'author', 'score', 'pub_date',)
+        read_only_fields = ('pub_date',)
+        # validators = [
+        #    UniqueTogetherValidator(
+        #        queryset=Review.objects.all(),
+        #        fields=('author', 'title')
+        #    )
+        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -15,7 +15,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ModelViewSet
 
 from reviews.models import CustomUser, Category, Genre, Title, Review, Title
-from api.permissions import IsAdmin, IsAdminUserOrReadOnly
+from api.permissions import (
+    IsAdmin,
+    IsAdminUserOrReadOnly,
+    IsAdminOrModeratorOrAuthorOrReadOnly
+)
 from api.mixins import ModelMixinSet
 from api.serializers import (
     CategorySerializer,
@@ -110,13 +114,14 @@ class ConfirmationAPIView(APIView):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
 
     def get_title_obj(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
 
     def get_queryset(self):
         title = self.get_title_obj()
-        return title.reviews
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title_obj())
@@ -124,13 +129,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
 
     def get_review_obj(self):
         return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         review = self.get_review_obj()
-        return review.comments
+        return review.comments.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.get_review_obj())
