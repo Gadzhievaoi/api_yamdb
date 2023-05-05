@@ -69,29 +69,37 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class UserCreateAPIView(APIView):
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
-            if not CustomUser.objects.filter(
-                username=serializer.validated_data['username']
-            ).exists():
-                serializer.save(role='user')
-            user = CustomUser.objects.get(
-                username=serializer.validated_data['username']
+            username = serializer.validated_data.get('username')
+            email = serializer.validated_data.get('email')
+            password = serializer.validated_data.get('password')
+            role = serializer.validated_data.get('role', 'user')
+
+            # Проверяем уникальность имени пользователя
+            if CustomUser.objects.filter(username=username).exists():
+                return Response({'error': 'Username already exists'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                role=role
             )
-            user.confirmation_code = str(RefreshToken.for_user(user))
-            user.save(update_fields=['confirmation_code'])
+            refresh = RefreshToken.for_user(user)
+
+            # Отправляем электронное письмо с кодом подтверждения
             send_mail(
-                'Confirmation code.',
-                user.confirmation_code,
-                'no_replay@yamdb.ru',
-                [user.email, ],
+                'Подтверждение регистрации',
+                f'Код подтверждения регистрации: {refresh}',
+                'yamdb@mail.com',
+                [email],
                 fail_silently=False,
             )
-            return Response(
-                serializer.validated_data,
-                status=status.HTTP_201_CREATED,
-            )
+            return Response({'success': 'User created'},
+                            status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

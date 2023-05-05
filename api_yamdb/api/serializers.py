@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers, validators
 from rest_framework.relations import SlugRelatedField
 # from rest_framework.validators import UniqueTogetherValidator
@@ -5,6 +6,9 @@ from django.shortcuts import get_object_or_404
 # from django.db.models import Avg
 
 from reviews.models import Category, Comment, CustomUser, Genre, Review, Title
+
+
+CustomUser = get_user_model()
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -36,15 +40,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
                   'last_name', 'bio', 'role')
 
     def validate(self, value):
-        if 'me' == value:
+        if 'me' == value.get('username'):
             raise serializers.ValidationError(
                 'Использовать имя "me" в качестве username запрещено.'
             )
         return value
 
-    def validate_unique_user(self, username, email):
+    def validate_unique_user(self, attrs):
+        username = attrs.get('username')
+        email = attrs.get('email')
         if CustomUser.objects.filter(username=username, email=email).exists():
-            return
+            return attrs
         if CustomUser.objects.filter(username=username).exists():
             raise serializers.ValidationError({
                 'username':
@@ -55,6 +61,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 'email':
                 'Пользователь с email {} уже есть в базе.'.format(email)
             })
+        return attrs
 
 
 class ConfirmationSerializer(serializers.ModelSerializer):
@@ -83,20 +90,22 @@ class ConfirmationSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True,
                               default=serializers.CurrentUserDefault())
-    # title = serializers.HiddenField(
-    #    default=Title.objects.get(
-    #        id=serializers.context['request'].query_params.get('title_id')))
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date',)
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
         read_only_fields = ('pub_date',)
-        # validators = [
-        #    UniqueTogetherValidator(
-        #        queryset=Review.objects.all(),
-        #        fields=('author', 'title')
-        #    )
-        # ]
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if request.method == 'POST':
+            review = Review.objects.filter(
+                title=self.context.get('view').kwargs.get('title_id'),
+                author=self.context.get('request').user
+            )
+            if review.exists():
+                raise serializers.ValidationError('Review already exists')
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
