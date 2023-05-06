@@ -1,9 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, validators
 from rest_framework.relations import SlugRelatedField
-# from rest_framework.validators import UniqueTogetherValidator
 from django.shortcuts import get_object_or_404
-# from django.db.models import Avg
+from django.db.models import Avg
 
 from reviews.models import Category, Comment, CustomUser, Genre, Review, Title
 
@@ -110,9 +109,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
-    # review = serializers.HiddenField(
-    #    default=Review.objects.get(
-    #        id=serializers.context['request'].query_params.get('review_id')))
 
     class Meta:
         model = Comment
@@ -140,11 +136,15 @@ class TitleReadSerializer(serializers.ModelSerializer):
         read_only=True,
         many=True
     )
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = '__all__'
         model = Title
+
+    def get_rating(self, obj):
+        rating = obj.reviews.aggregate(rating=Avg("score"))
+        return rating['rating']
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -157,7 +157,12 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True
     )
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = '__all__'
         model = Title
+
+    def get_rating(self, obj):
+        rating = obj.reviews.aggregate(rating=Avg("score"))
+        return rating['rating']
