@@ -45,23 +45,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_unique_user(self, attrs):
-        username = attrs.get('username')
-        email = attrs.get('email')
-        if CustomUser.objects.filter(username=username, email=email).exists():
-            return attrs
-        if CustomUser.objects.filter(username=username).exists():
-            raise serializers.ValidationError({
-                'username':
-                'Пользователь с именем {} уже есть в базе.'.format(username)
-            })
-        if CustomUser.objects.filter(email=email).exists():
-            raise serializers.ValidationError({
-                'email':
-                'Пользователь с email {} уже есть в базе.'.format(email)
-            })
-        return attrs
-
 
 class ConfirmationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
