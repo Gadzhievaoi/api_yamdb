@@ -19,7 +19,6 @@ class CustomUser(AbstractUser):
     username = models.TextField(
         max_length=150,
         unique=True,
-        blank=True,
         verbose_name='Логин',
         help_text='Введите логин для регистрации, не более 150 символов'
                   'используя только буквы, цифры и @/./+/-/_ .',
@@ -27,29 +26,18 @@ class CustomUser(AbstractUser):
     email = models.EmailField(
         max_length=254,
         unique=True,
-        blank=True,
         verbose_name='Адрес электронной почты',
         help_text='Введите адрес электронной почты для регистрации.',
     )
     confirmation_code = models.TextField(
-        null=True,
         blank=True,
         verbose_name='Код подтверждения',
         help_text='Введите код подтверждения из письма'
                   'электронной почты, указанной при регистрации.',
     )
-    first_name = models.TextField(
-        max_length=150,
-        verbose_name='Имя',
-        help_text='Введите свое имя.',
-    )
-    last_name = models.TextField(
-        max_length=150,
-        verbose_name='Фамилия',
-        help_text='Введите свою фамилию.',
-    )
     bio = models.TextField(
         max_length=1000,
+        blank=True,
         verbose_name='Биография пользователя',
         help_text='Кратко опишите свою биографию.',
     )
