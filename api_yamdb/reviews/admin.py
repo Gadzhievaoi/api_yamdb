@@ -1,10 +1,11 @@
 from django.contrib import admin
-
 from reviews.models import Category, Comment, CustomUser, Genre, Review, Title
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'role', )
+    list_display = ('pk', 'username', 'email',
+                    'first_name', 'last_name', 'role',
+                    'confirmation_code', 'password')
     list_editable = ('role', )
     search_fields = ('username',)
 

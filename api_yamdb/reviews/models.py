@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-
-from .validators import validate_year
+from .validators import validate_username, validate_year
 
 
 class CustomUser(AbstractUser):
@@ -16,12 +15,23 @@ class CustomUser(AbstractUser):
         (MODERATOR, 'Модератор'),
     ]
 
-    username = models.TextField(
+    username = models.CharField(
         max_length=150,
         unique=True,
+        validators=(validate_username, ),
         verbose_name='Логин',
         help_text='Введите логин для регистрации, не более 150 символов'
                   'используя только буквы, цифры и @/./+/-/_ .',
+    )
+    first_name = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name='Имя',
+    )
+    last_name = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name='Фамилия',
     )
     email = models.EmailField(
         max_length=254,
@@ -29,7 +39,8 @@ class CustomUser(AbstractUser):
         verbose_name='Адрес электронной почты',
         help_text='Введите адрес электронной почты для регистрации.',
     )
-    confirmation_code = models.TextField(
+    confirmation_code = models.CharField(
+        max_length=150,
         blank=True,
         verbose_name='Код подтверждения',
         help_text='Введите код подтверждения из письма'
@@ -54,13 +65,12 @@ class CustomUser(AbstractUser):
 
     @property
     def is_moderator(self):
-        return self.role == CustomUser.MODERATOR
+        return self.role == self.MODERATOR
 
     @property
     def is_admin(self):
         return (
-            self.role == CustomUser.ADMIN
-            or self.is_superuser
+            self.role == self.ADMIN
             or self.is_staff
         )
 

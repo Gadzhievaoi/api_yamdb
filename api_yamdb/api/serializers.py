@@ -1,72 +1,65 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers, validators
+from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from django.shortcuts import get_object_or_404
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 from django.db.models import Avg
-
 from reviews.models import Category, Comment, CustomUser, Genre, Review, Title
+from reviews.validators import validate_username
 
 
-CustomUser = get_user_model()
-
-
-class UserCreateSerializer(serializers.ModelSerializer):
-    username = serializers.RegexField(
-        r'^[\w.@+-]+\Z',
+class CustomUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
         max_length=150,
-        required=True,
-        validators=[
-            validators.UniqueValidator(
-                queryset=CustomUser.objects.all(),
-                message='Пользователь с таким именем уже существует.'
-            )
-        ]
-    )
-    email = serializers.EmailField(
-        max_length=254,
-        required=True,
-        validators=[
-            validators.UniqueValidator(
-                queryset=CustomUser.objects.all(),
-                message='Пользователь с таким email уже существует.'
-            )
-        ]
+        validators=(
+            validate_username,
+            UniqueValidator(queryset=CustomUser.objects.all()),
+        )
     )
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'first_name',
-                  'last_name', 'bio', 'role')
+        fields = ('username', 'first_name', 'last_name',
+                  'email', 'bio', 'role')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=CustomUser.objects.all(),
+                fields=('username', 'email')
+            ),
+        ]
 
-    def validate(self, value):
-        if 'me' == value.get('username'):
-            raise serializers.ValidationError(
-                'Использовать имя "me" в качестве username запрещено.'
-            )
-        return value
 
-
-class ConfirmationSerializer(serializers.ModelSerializer):
+class SignupSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        max_length=254,
+        required=True
+    )
     username = serializers.CharField(
         max_length=150,
         required=True,
+        validators=(validate_username,)
     )
+
+
+class ConfirmationSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.CharField(
+        max_length=150,
+        required=True
+    )
+    username = serializers.CharField(
+        max_length=150,
         required=True,
+        validators=(validate_username,)
     )
 
     class Meta:
         model = CustomUser
-        fields = (
-            'username',
-            'confirmation_code'
-        )
-
-    def validate(self, attrs):
-        user = get_object_or_404(CustomUser, username=attrs['username'])
-        if user.confirmation_code != attrs['confirmation_code']:
-            raise serializers.ValidationError('Неверный код подтверждения.')
-        return attrs
+        fields = ('confirmation_code', 'username')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=CustomUser.objects.all(),
+                fields=('username', 'confirmation_code')
+            )
+        ]
 
 
 class ReviewSerializer(serializers.ModelSerializer):

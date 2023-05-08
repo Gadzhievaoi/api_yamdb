@@ -1,8 +1,10 @@
+import hashlib
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
-from rest_framework.views import APIView
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import (AllowAny, IsAuthenticated)
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import (
@@ -14,111 +16,100 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ModelViewSet
 
-from reviews.models import CustomUser, Category, Genre, Title, Review, Title
+from reviews.models import Category, CustomUser, Genre, Review, Title
 from api.permissions import (
     IsAdmin,
     IsAdminUserOrReadOnly,
     IsAdminOrModeratorOrAuthorOrReadOnly
 )
 from api.mixins import ModelMixinSet
-from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    CommentSerializer,
-    ConfirmationSerializer,
-    UserCreateSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer
-)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             ConfirmationSerializer, CustomUserSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             SignupSerializer, TitleReadSerializer,
+                             TitleWriteSerializer
+                             )
 from api.filters import GenreTitleFilter
+from django.conf import settings
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
-    serializer_class = UserCreateSerializer
+    serializer_class = CustomUserSerializer
     permission_classes = [IsAdmin]
     pagination_class = LimitOffsetPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['^username']
+    search_fields = ('username',)
     lookup_field = 'username'
-    http_method_names = ("get", "post", "delete", "patch")
+    http_method_names = ('get', 'post', 'head', 'patch', 'delete')
 
     @action(
         methods=['GET', 'PATCH'],
         detail=False,
+        serializer_class=CustomUserSerializer,
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        if request.method == "GET":
-            serializer = UserCreateSerializer(request.user)
-            return Response(serializer.data, status.HTTP_200_OK)
+        user = get_object_or_404(CustomUser, pk=request.user.id)
+        serializer = self.get_serializer(
+            user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=user.role)
 
-        serializer = UserCreateSerializer(
-            request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            if (
-                'role' in serializer.validated_data
-                and not request.user.is_admin
-            ):
-                serializer.validated_data['role'] = request.user.role
-            serializer.save()
-            return Response(serializer.validated_data,
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserCreateAPIView(APIView):
-
-    def post(self, request):
-        serializer = UserCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data.get('username')
-            email = serializer.validated_data.get('email')
-            password = serializer.validated_data.get('password')
-            role = serializer.validated_data.get('role', 'user')
-
-            # Проверяем уникальность имени пользователя
-            if CustomUser.objects.filter(username=username).exists():
-                return Response({'error': 'Username already exists'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            user = CustomUser.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                role=role
-            )
-            refresh = RefreshToken.for_user(user)
-
-            # Отправляем электронное письмо с кодом подтверждения
-            send_mail(
-                'Подтверждение регистрации',
-                f'Код подтверждения регистрации: {refresh}',
-                'yamdb@mail.com',
-                [email],
-                fail_silently=False,
-            )
-            return Response({'success': 'User created'},
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup(request):
+    serializer = SignupSerializer(data=request.data)
+    if CustomUser.objects.filter(
+        username=request.data.get('username'),
+        email=request.data.get('email')
+    ).exists():
+        return Response(request.data, status=status.HTTP_200_OK)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    email = serializer.validated_data['email']
+    salt = hashlib.sha256((username + email).encode('utf-8')).hexdigest()[:6]
+    confirmation_code = hashlib.sha256(
+        (username + salt).encode('utf-8')).hexdigest()
+    try:
+        user, created = CustomUser.objects.get_or_create(
+            **serializer.validated_data,
+            confirmation_code=confirmation_code
+        )
+    except Exception as error:
+        return Response(
+            f'Получена ошибка ->{error}<-',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    send_mail(
+        subject='Код подтверждения',
+        message=f'{user.confirmation_code} - Код авторизации на сайте',
+        from_email=settings.FROM_EMAIL,
+        recipient_list=[user.email]
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ConfirmationAPIView(APIView):
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def token(request):
+    serializer = ConfirmationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    confirm_code = serializer.validated_data['confirmation_code']
+    user = get_object_or_404(CustomUser, username=username)
+    if user.confirmation_code != confirm_code:
+        return Response(
+            'Код неверный', status=status.HTTP_400_BAD_REQUEST
+        )
+    refresh = RefreshToken.for_user(user)
+    token_data = {'token': str(refresh.access_token)}
 
-    def create(self, request, *args, **kwargs):
-        serializer = ConfirmationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = CustomUser.objects.get(
-                username=serializer.validated_data['username']
-            )
-            user.confirmation_code = ''
-            user.save(update_fields=['confirmation_code'])
-            return Response(
-                {'token': str(RefreshToken.for_user(user).access_token)},
-                status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(token_data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
