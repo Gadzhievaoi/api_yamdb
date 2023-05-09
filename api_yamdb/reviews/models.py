@@ -81,8 +81,12 @@ class CustomUser(AbstractUser):
 
 class Genre(models.Model):
     """Модель жанры."""
-    name = models.CharField(max_length=256)
+
+    name = models.CharField(max_length=256, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['slug']
 
     def __str__(self):
         return self.slug
@@ -90,10 +94,14 @@ class Genre(models.Model):
 
 class Category(models.Model):
     """Модель категории."""
-    name = models.CharField(max_length=256)
+
+    name = models.CharField(max_length=256, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
 
-    def __str__(self) -> str:
+    class Meta:
+        ordering = ['slug']
+
+    def __str__(self):
         return self.slug
 
 
@@ -128,8 +136,9 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ['name']
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.name
 
 
@@ -154,7 +163,6 @@ class Review(models.Model):
                 name='unique_review'
             )
         ]
-        ordering = ('-pub_date',)
 
 
 class Comment(models.Model):
