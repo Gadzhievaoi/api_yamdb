@@ -123,7 +123,6 @@ class Title(models.Model):
         null=True,
         verbose_name='Описание'
     )
-    rating = models.IntegerField(null=True)
 
     class Meta:
         verbose_name = 'Произведение'
@@ -154,6 +153,7 @@ class Review(models.Model):
                 name='unique_review'
             )
         ]
+        ordering = ('-pub_date',)
 
 
 class Comment(models.Model):
@@ -163,3 +163,6 @@ class Comment(models.Model):
     author = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='comments')
     pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-pub_date',)

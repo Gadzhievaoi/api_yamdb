@@ -88,7 +88,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('pub_date', 'review')
 
 
@@ -119,7 +119,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, obj):
-        rating = obj.reviews.aggregate(rating=Avg("score"))
+        rating = obj.reviews.aggregate(rating=Avg('score'))
         return rating['rating']
 
 
@@ -140,5 +140,5 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, obj):
-        rating = obj.reviews.aggregate(rating=Avg("score"))
+        rating = obj.reviews.aggregate(rating=Avg('score'))
         return rating['rating']

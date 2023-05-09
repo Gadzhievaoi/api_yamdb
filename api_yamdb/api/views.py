@@ -132,7 +132,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
 
     def get_review_obj(self):
-        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return get_object_or_404(title.reviews,
+                                 pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         review = self.get_review_obj()
