@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from .validators import validate_username, validate_year
+
+from reviews.validators import validate_username, validate_year
 
 
 class CustomUser(AbstractUser):
@@ -71,7 +72,7 @@ class CustomUser(AbstractUser):
     def is_admin(self):
         return (
             self.role == self.ADMIN
-            or self.is_staff
+            or self.is_superuser
         )
 
     def __str__(self):
