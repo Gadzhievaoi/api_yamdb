@@ -163,6 +163,7 @@ class Review(models.Model):
                 name='unique_review'
             )
         ]
+        ordering = ('-pub_date',)
 
 
 class Comment(models.Model):
