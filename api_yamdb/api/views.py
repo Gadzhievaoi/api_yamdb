@@ -28,7 +28,7 @@ from api.serializers import (
     CustomUserSerializer, GenreSerializer, ReviewSerializer,
     SignupSerializer, TitleReadSerializer, TitleWriteSerializer,
 )
-from reviews.models import Category, CustomUser, Genre, Review, Title
+from reviews.models import Category, CustomUser, Genre, Title
 
 
 class UserViewSet(viewsets.ModelViewSet):
