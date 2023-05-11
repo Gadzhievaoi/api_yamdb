@@ -1,9 +1,13 @@
+from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
-from django.db.models import Avg
+
 from reviews.models import Category, Comment, CustomUser, Genre, Review, Title
 from reviews.validators import validate_username
+
+User = get_user_model()
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -17,12 +21,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('username', 'first_name', 'last_name',
                   'email', 'bio', 'role')
         validators = [
             UniqueTogetherValidator(
-                queryset=CustomUser.objects.all(),
+                queryset=User.objects.all(),
                 fields=('username', 'email')
             ),
         ]
@@ -43,23 +47,16 @@ class SignupSerializer(serializers.Serializer):
 class ConfirmationSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.CharField(
         max_length=150,
-        required=True
+        required=True,
     )
     username = serializers.CharField(
         max_length=150,
-        required=True,
-        validators=(validate_username,)
+        required=True
     )
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('confirmation_code', 'username')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=CustomUser.objects.all(),
-                fields=('username', 'confirmation_code')
-            )
-        ]
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -88,7 +85,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('pub_date', 'review')
 
 
@@ -119,7 +116,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, obj):
-        rating = obj.reviews.aggregate(rating=Avg("score"))
+        rating = obj.reviews.aggregate(rating=Avg('score'))
         return rating['rating']
 
 
@@ -131,7 +128,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         slug_field='slug',
-        many=True
+        many=True,
+        required=True
     )
     rating = serializers.SerializerMethodField()
 
@@ -140,5 +138,5 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, obj):
-        rating = obj.reviews.aggregate(rating=Avg("score"))
+        rating = obj.reviews.aggregate(rating=Avg('score'))
         return rating['rating']
