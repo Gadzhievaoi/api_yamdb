@@ -51,19 +51,12 @@ class ConfirmationSerializer(serializers.ModelSerializer):
     )
     username = serializers.CharField(
         max_length=150,
-        required=True,
-        validators=(validate_username,)
+        required=True
     )
 
     class Meta:
         model = User
         fields = ('confirmation_code', 'username')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=('username', 'confirmation_code')
-            )
-        ]
 
 
 class ReviewSerializer(serializers.ModelSerializer):
