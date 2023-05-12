@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from reviews.validators import validate_username, validate_year
+from reviews.validators import validate_username, validate_year, validate_genre
 
 
 class CustomUser(AbstractUser):
@@ -118,7 +118,11 @@ class Title(models.Model):
         validators=[validate_year],
         help_text='Введите год релиза'
     )
-    genre = models.ManyToManyField(Genre, verbose_name='Жанр')
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанр',
+        validators=[validate_genre]
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,

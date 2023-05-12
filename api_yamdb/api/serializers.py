@@ -117,7 +117,10 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         rating = obj.reviews.aggregate(rating=Avg('score'))
-        return rating['rating']
+        if rating is not None:
+            return rating['rating']
+        rating = 0
+        return rating
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
@@ -139,4 +142,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         rating = obj.reviews.aggregate(rating=Avg('score'))
-        return rating['rating']
+        if rating is not None:
+            return rating['rating']
+        rating = 0
+        return rating

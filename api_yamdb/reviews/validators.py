@@ -14,3 +14,10 @@ def validate_username(name):
     if not re.compile(r'^[\w.@+-]+').fullmatch(name):
         raise ValidationError(
             'Можно использовать только буквы, цифры и символы @.+-_".')
+
+
+def validate_genre(genre):
+    if genre == '':
+        raise ValidationError(
+            'Поле "Genre" должно быть заполнено',
+        )

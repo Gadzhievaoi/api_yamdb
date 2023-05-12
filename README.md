@@ -38,6 +38,9 @@ REST API для сервиса YaMDb — базы отзывов о фильма
 ```
 5. Выполнить миграции
 ```
+    python manage.py makemigrations
+```
+```
     python manage.py migrate
 ```
 6. Запустить проект
